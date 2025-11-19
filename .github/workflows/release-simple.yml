@@ -1,4 +1,3 @@
-# Упрощенный workflow для создания релиза без GPG подписи
 name: release-simple
 on:
   workflow_dispatch:
@@ -32,7 +31,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: release --clean --skip-sign
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
