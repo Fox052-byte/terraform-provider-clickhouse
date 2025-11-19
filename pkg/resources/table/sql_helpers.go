@@ -2,7 +2,7 @@ package resourcetable
 
 import (
 	"fmt"
-	"github.com/IvanOfThings/terraform-provider-clickhouse/pkg/common"
+	"github.com/Fox052-byte/terraform-clickhouse/pkg/common"
 	"strings"
 )
 

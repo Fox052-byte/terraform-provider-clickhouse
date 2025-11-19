@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/IvanOfThings/terraform-provider-clickhouse/pkg/provider"
+	"github.com/Fox052-byte/terraform-clickhouse/pkg/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/IvanOfThings/terraform-provider-clickhouse/pkg/common"
-	resourcerole "github.com/IvanOfThings/terraform-provider-clickhouse/pkg/resources/role"
+	"github.com/Fox052-byte/terraform-clickhouse/pkg/common"
+	resourcerole "github.com/Fox052-byte/terraform-clickhouse/pkg/resources/role"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/IvanOfThings/terraform-provider-clickhouse/pkg/testutils"
+	"github.com/Fox052-byte/terraform-clickhouse/pkg/testutils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 

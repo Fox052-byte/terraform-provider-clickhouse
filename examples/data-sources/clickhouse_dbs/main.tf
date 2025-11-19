@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     clickhouse = {
-      version = "2.0.0"
-      source  = "hashicorp.com/ivanofthings/clickhouse"
+      version = "0.0.1"
+      source  = "registry.terraform.io/fox052-byte/clickhouse"
     }
   }
 }

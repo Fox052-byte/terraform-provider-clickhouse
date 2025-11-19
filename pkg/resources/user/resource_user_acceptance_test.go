@@ -3,14 +3,14 @@ package resourceuser_test
 import (
 	"context"
 	"fmt"
-	"github.com/IvanOfThings/terraform-provider-clickhouse/pkg/common"
-	"github.com/IvanOfThings/terraform-provider-clickhouse/pkg/resources/user"
+	"github.com/Fox052-byte/terraform-clickhouse/pkg/common"
+	"github.com/Fox052-byte/terraform-clickhouse/pkg/resources/user"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/IvanOfThings/terraform-provider-clickhouse/pkg/testutils"
+	"github.com/Fox052-byte/terraform-clickhouse/pkg/testutils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 

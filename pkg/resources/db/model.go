@@ -1,6 +1,6 @@
 package resourcedb
 
-import "github.com/IvanOfThings/terraform-provider-clickhouse/pkg/resources/table"
+import "github.com/Fox052-byte/terraform-clickhouse/pkg/resources/table"
 
 type CHDBResources struct {
 	CHTables []resourcetable.CHTable

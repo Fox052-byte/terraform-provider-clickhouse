@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/IvanOfThings/terraform-provider-clickhouse/pkg/testutils"
+	"github.com/Fox052-byte/terraform-clickhouse/pkg/testutils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"

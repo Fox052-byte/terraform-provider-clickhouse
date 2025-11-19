@@ -2,9 +2,6 @@ module github.com/Fox052-byte/terraform-clickhouse
 
 go 1.19
 
-replace github.com/hashicorp/terraform-provider-scaffolding => github.com/Fox052-byte/terraform-clickhouse v0.0.1
-replace github.com/IvanOfThings/terraform-provider-clickhouse => github.com/Fox052-byte/terraform-clickhouse v0.0.1
-
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.15.0
 	github.com/go-playground/validator/v10 v10.11.1

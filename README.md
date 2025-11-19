@@ -6,6 +6,8 @@ _This template repository is built on the [Terraform Plugin SDK](https://github.
 
 This is a terraform provider plugin for managing Clickhouse databases and tables in a simple way.
 
+**Fork Information:** This is a fork of [IvanOfThings/terraform-provider-clickhouse](https://github.com/IvanOfThings/terraform-provider-clickhouse) maintained by [Fox052-byte](https://github.com/Fox052-byte).
+
 _Note_: This provider it's in a very early state so only few table engines are allowed for replicated tables so far.
 
 
