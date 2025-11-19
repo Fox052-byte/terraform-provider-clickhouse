@@ -75,13 +75,17 @@ jobs:
           # Remove any spaces from fingerprint
           FINGERPRINT=$(echo "$FINGERPRINT" | tr -d ' ')
           echo "Final GPG Fingerprint (no spaces): $FINGERPRINT"
+          
+          # Set both output and environment variable
           echo "fingerprint=$FINGERPRINT" >> $GITHUB_OUTPUT
+          echo "GPG_FINGERPRINT=$FINGERPRINT" >> $GITHUB_ENV
           
           echo "=== Listing GPG keys ==="
           gpg --list-secret-keys --keyid-format=long
           
           echo "=== Verifying fingerprint format ==="
-          echo "Output fingerprint will be: ${{ steps.gpg_fingerprint.outputs.fingerprint }}"
+          echo "Output fingerprint: ${{ steps.gpg_fingerprint.outputs.fingerprint }}"
+          echo "Environment variable GPG_FINGERPRINT is set to: $FINGERPRINT"
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
