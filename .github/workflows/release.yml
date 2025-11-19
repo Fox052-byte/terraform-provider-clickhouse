@@ -47,13 +47,24 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
-      - name: Verify GPG key
+      - name: Verify GPG key and set fingerprint
+        id: gpg_fingerprint
         run: |
-          echo "GPG Fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
-          if [ -z "${{ steps.import_gpg.outputs.fingerprint }}" ]; then
-            echo "Error: GPG key import failed!"
+          echo "GPG Fingerprint from import: ${{ steps.import_gpg.outputs.fingerprint }}"
+          echo "GPG Fingerprint from secret: ${{ secrets.GPG_FINGERPRINT }}"
+          
+          # Use fingerprint from import step, or fallback to secret
+          if [ -n "${{ steps.import_gpg.outputs.fingerprint }}" ]; then
+            FINGERPRINT="${{ steps.import_gpg.outputs.fingerprint }}"
+          elif [ -n "${{ secrets.GPG_FINGERPRINT }}" ]; then
+            FINGERPRINT="${{ secrets.GPG_FINGERPRINT }}"
+          else
+            echo "Error: GPG key import failed and no fingerprint in secrets!"
             exit 1
           fi
+          
+          echo "Using GPG Fingerprint: $FINGERPRINT"
+          echo "fingerprint=$FINGERPRINT" >> $GITHUB_OUTPUT
           gpg --list-secret-keys --keyid-format=long
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -61,6 +72,6 @@ jobs:
           version: v2.12.7
           args: release --clean
         env:
-          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          GPG_FINGERPRINT: ${{ steps.gpg_fingerprint.outputs.fingerprint }}
           # GitHub sets this automatically
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
