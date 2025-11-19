@@ -44,28 +44,44 @@ jobs:
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
         id: import_gpg
+        continue-on-error: true
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       - name: Verify GPG key and set fingerprint
         id: gpg_fingerprint
         run: |
-          echo "GPG Fingerprint from import: ${{ steps.import_gpg.outputs.fingerprint }}"
-          echo "GPG Fingerprint from secret: ${{ secrets.GPG_FINGERPRINT }}"
+          echo "=== GPG Key Verification ==="
+          echo "Import step output fingerprint: '${{ steps.import_gpg.outputs.fingerprint }}'"
+          echo "Secret fingerprint: '${{ secrets.GPG_FINGERPRINT }}'"
+          echo "Import step exit code: ${{ steps.import_gpg.outcome }}"
           
           # Use fingerprint from import step, or fallback to secret
+          FINGERPRINT=""
           if [ -n "${{ steps.import_gpg.outputs.fingerprint }}" ]; then
             FINGERPRINT="${{ steps.import_gpg.outputs.fingerprint }}"
+            echo "✓ Using fingerprint from import step: $FINGERPRINT"
           elif [ -n "${{ secrets.GPG_FINGERPRINT }}" ]; then
             FINGERPRINT="${{ secrets.GPG_FINGERPRINT }}"
+            echo "✓ Using fingerprint from secret: $FINGERPRINT"
           else
-            echo "Error: GPG key import failed and no fingerprint in secrets!"
+            echo "✗ Error: No fingerprint available!"
+            echo "Trying to list keys manually..."
+            gpg --list-secret-keys --keyid-format=long || true
+            echo "Please check GPG key import or add GPG_FINGERPRINT to secrets"
             exit 1
           fi
           
-          echo "Using GPG Fingerprint: $FINGERPRINT"
+          # Remove any spaces from fingerprint
+          FINGERPRINT=$(echo "$FINGERPRINT" | tr -d ' ')
+          echo "Final GPG Fingerprint (no spaces): $FINGERPRINT"
           echo "fingerprint=$FINGERPRINT" >> $GITHUB_OUTPUT
+          
+          echo "=== Listing GPG keys ==="
           gpg --list-secret-keys --keyid-format=long
+          
+          echo "=== Verifying fingerprint format ==="
+          echo "Output fingerprint will be: ${{ steps.gpg_fingerprint.outputs.fingerprint }}"
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
