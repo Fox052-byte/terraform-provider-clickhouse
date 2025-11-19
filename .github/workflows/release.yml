@@ -92,6 +92,7 @@ jobs:
           version: v2.12.7
           args: release --clean
         env:
-          GPG_FINGERPRINT: ${{ steps.gpg_fingerprint.outputs.fingerprint }}
+          # Use fingerprint from step output, fallback to secret if step output is empty
+          GPG_FINGERPRINT: ${{ steps.gpg_fingerprint.outputs.fingerprint || secrets.GPG_FINGERPRINT }}
           # GitHub sets this automatically
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

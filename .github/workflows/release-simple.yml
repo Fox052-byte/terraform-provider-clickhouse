@@ -1,13 +1,9 @@
+# Упрощенный workflow для создания релиза без GPG подписи
+# ОТКЛЮЧЕН - используйте release.yml с GPG подписью для Terraform Registry
 name: release-simple
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version tag (e.g., v0.0.1)'
-        required: true
-  push:
-    tags:
-      - "v*"
+  # Disabled - use release.yml with GPG signing instead
+  workflow_dispatch:  # Only manual trigger, no automatic triggers
 
 permissions:
   contents: write
@@ -15,6 +11,7 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    if: false  # Disabled - use release.yml instead
     steps:
       - name: Checkout
         uses: actions/checkout@v4
