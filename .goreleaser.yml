@@ -2,6 +2,8 @@
 # behavior.
 version: 2
 
+project_name: terraform-provider-clickhouse
+
 before:
   hooks:
     # this is just an example and not a requirement for provider building/publishing
