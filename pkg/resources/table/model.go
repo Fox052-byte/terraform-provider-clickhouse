@@ -112,7 +112,8 @@ func (t *CHTable) ToResource() (*TableResource, error) {
 		}
 	}
 
-	partitionByRegex := regexp.MustCompile(`(?i)PARTITION\s+BY\s+([^(]+?)(?:\s+ORDER|\s+COMMENT|\s+SETTINGS|$)`)
+
+	partitionByRegex := regexp.MustCompile(`(?i)PARTITION\s+BY\s+((?:[^\s]|\([^)]+\))+?)(?:\s+(?:ORDER|COMMENT|SETTINGS)|\s*$)`)
 	partitionByMatches := partitionByRegex.FindStringSubmatch(createQuery)
 	if len(partitionByMatches) > 1 {
 		partitionByStr := partitionByMatches[1]
