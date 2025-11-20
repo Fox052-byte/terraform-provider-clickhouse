@@ -64,6 +64,9 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 	if len(resource.PartitionBy) > 0 {
 		parts = append(parts, buildPartitionBySentence(resource.PartitionBy))
 	}
+	
+	// Добавляем COMMENT
+	parts = append(parts, fmt.Sprintf("COMMENT '%s'", resource.Comment))
 
 	return strings.Join(parts, " ")
 }
