@@ -40,7 +40,7 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 	columnsStatement := ""
 	if len(resource.Columns) > 0 {
 		columnsList := buildColumnsSentence(resource.GetColumnsResourceList())
-		columnsStatement = "(" + strings.Join(columnsList, ",\n") + ")\n"
+		columnsStatement = "(" + strings.Join(columnsList, ",\n") + ")"
 	}
 
 	clusterStatement := common.GetClusterStatement(resource.Cluster)
