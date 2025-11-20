@@ -3,7 +3,6 @@ package resourcetable
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -156,6 +155,23 @@ func resourceTableRead(ctx context.Context, d *schema.ResourceData, meta any) di
 	if err := d.Set("cluster", tableResource.Cluster); err != nil {
 		return diag.FromErr(fmt.Errorf("setting cluster: %v", err))
 	}
+	if err := d.Set("order_by", tableResource.OrderBy); err != nil {
+		return diag.FromErr(fmt.Errorf("setting order_by: %v", err))
+	}
+	// Преобразуем PartitionByResource в формат для Terraform schema
+	partitionByList := make([]interface{}, 0)
+	for _, pb := range tableResource.PartitionBy {
+		partitionByMap := map[string]interface{}{
+			"by": pb.By,
+		}
+		if pb.PartitionFunction != "" {
+			partitionByMap["partition_function"] = pb.PartitionFunction
+		}
+		partitionByList = append(partitionByList, partitionByMap)
+	}
+	if err := d.Set("partition_by", partitionByList); err != nil {
+		return diag.FromErr(fmt.Errorf("setting partition_by: %v", err))
+	}
 	if err := d.Set("column", tableResource.Columns); err != nil {
 		return diag.FromErr(fmt.Errorf("setting column: %v", err))
 	}
@@ -176,45 +192,65 @@ func resourceTableCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 	tableResource.Cluster = d.Get("cluster").(string)
 	tableResource.Database = d.Get("database").(string)
 	tableResource.Name = d.Get("name").(string)
-	tableResource.Columns = d.Get("column").([]interface{})
 	tableResource.Engine = d.Get("engine").(string)
-	tableResource.Comment = common.GetComment(d.Get("comment").(string), tableResource.Cluster)
-	tableResource.EngineParams = common.MapArrayInterfaceToArrayOfStrings(d.Get("engine_params").([]interface{}))
 	
-	// order_by - безопасная обработка опционального поля
-	orderByRaw := d.Get("order_by")
-	log.Printf("DEBUG resourceTableCreate: orderByRaw = %v (type: %T)", orderByRaw, orderByRaw)
-	if orderByRaw != nil {
-		if orderByList, ok := orderByRaw.([]interface{}); ok {
-			log.Printf("DEBUG resourceTableCreate: orderByList = %v", orderByList)
-			tableResource.OrderBy = common.MapArrayInterfaceToArrayOfStrings(orderByList)
-			log.Printf("DEBUG resourceTableCreate: tableResource.OrderBy = %v", tableResource.OrderBy)
+	// Безопасная обработка опциональных полей
+	commentRaw := d.Get("comment")
+	commentStr := ""
+	if commentRaw != nil {
+		commentStr = commentRaw.(string)
+	}
+	tableResource.Comment = common.GetComment(commentStr, tableResource.Cluster)
+	
+	// Обработка columns
+	columnRaw := d.Get("column")
+	if columnRaw != nil {
+		if columnList, ok := columnRaw.([]interface{}); ok {
+			tableResource.Columns = columnList
 		} else {
-			log.Printf("DEBUG resourceTableCreate: orderByRaw is not []interface{}, using empty list")
+			tableResource.Columns = []interface{}{}
+		}
+	} else {
+		tableResource.Columns = []interface{}{}
+	}
+	
+	// Обработка engine_params
+	engineParamsRaw := d.Get("engine_params")
+	if engineParamsRaw != nil {
+		if engineParamsList, ok := engineParamsRaw.([]interface{}); ok {
+			tableResource.EngineParams = common.MapArrayInterfaceToArrayOfStrings(engineParamsList)
+		} else {
+			tableResource.EngineParams = []string{}
+		}
+	} else {
+		tableResource.EngineParams = []string{}
+	}
+	
+	// order_by - упрощенная обработка опционального поля
+	orderByRaw := d.Get("order_by")
+	if orderByRaw != nil {
+		if orderByList, ok := orderByRaw.([]interface{}); ok && len(orderByList) > 0 {
+			tableResource.OrderBy = common.MapArrayInterfaceToArrayOfStrings(orderByList)
+		} else {
 			tableResource.OrderBy = []string{}
 		}
 	} else {
-		log.Printf("DEBUG resourceTableCreate: orderByRaw is nil, using empty list")
 		tableResource.OrderBy = []string{}
 	}
 	
 	// partition_by - безопасная обработка опционального поля
 	partitionByRaw := d.Get("partition_by")
-	log.Printf("DEBUG resourceTableCreate: partitionByRaw = %v (type: %T)", partitionByRaw, partitionByRaw)
 	if partitionByRaw != nil {
 		if partitionByList, ok := partitionByRaw.([]interface{}); ok {
-			log.Printf("DEBUG resourceTableCreate: partitionByList = %v", partitionByList)
 			tableResource.SetPartitionBy(partitionByList)
 		} else {
-			log.Printf("DEBUG resourceTableCreate: partitionByRaw is not []interface{}, using empty list")
 			tableResource.PartitionBy = []PartitionByResource{}
 		}
 	} else {
-		log.Printf("DEBUG resourceTableCreate: partitionByRaw is nil, using empty list")
 		tableResource.PartitionBy = []PartitionByResource{}
 	}
 
-	if tableResource.Cluster != "" {
+	if tableResource.Cluster == "" {
 		tableResource.Cluster = client.DefaultCluster
 	}
 
@@ -223,10 +259,13 @@ func resourceTableCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diags
 	}
 
+	// Формируем SQL запрос
+	query := buildCreateOnClusterSentence(tableResource)
 	err := chTableService.CreateTable(ctx, tableResource)
 
 	if err != nil {
-		return diag.FromErr(err)
+		// В случае ошибки включаем SQL запрос в сообщение для отладки
+		return diag.FromErr(fmt.Errorf("creating table failed. SQL: %s, error: %v", query, err))
 	}
 
 	d.SetId(tableResource.Cluster + ":" + tableResource.Database + ":" + tableResource.Name)

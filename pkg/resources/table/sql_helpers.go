@@ -2,7 +2,6 @@ package resourcetable
 
 import (
 	"fmt"
-	"log"
 	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/common"
 	"strings"
 )
@@ -38,44 +37,36 @@ func buildOrderBySentence(orderBy []string) string {
 }
 
 func buildCreateOnClusterSentence(resource TableResource) (query string) {
-	columnsStatement := ""
+	// Формируем базовую часть CREATE TABLE
+	parts := []string{fmt.Sprintf("CREATE TABLE %s.%s", resource.Database, resource.Name)}
+	
+	// Добавляем ON CLUSTER если указан
+	if resource.Cluster != "" {
+		parts = append(parts, common.GetClusterStatement(resource.Cluster))
+	}
+	
+	// Добавляем колонки
 	if len(resource.Columns) > 0 {
 		columnsList := buildColumnsSentence(resource.GetColumnsResourceList())
-		columnsStatement = "(" + strings.Join(columnsList, ", ") + ")"
+		parts = append(parts, "("+strings.Join(columnsList, ", ")+")")
 	}
-
-	clusterStatement := common.GetClusterStatement(resource.Cluster)
-
-	orderBySentence := buildOrderBySentence(resource.OrderBy)
-	partitionBySentence := buildPartitionBySentence(resource.PartitionBy)
-
-	createTablePart := fmt.Sprintf("CREATE TABLE %v.%v", resource.Database, resource.Name)
-	if clusterStatement != "" {
-		createTablePart += " " + clusterStatement
+	
+	// Добавляем ENGINE
+	engineParamsStr := strings.Join(resource.EngineParams, ", ")
+	parts = append(parts, fmt.Sprintf("ENGINE = %s(%s)", resource.Engine, engineParamsStr))
+	
+	// Добавляем ORDER BY если указан
+	if len(resource.OrderBy) > 0 {
+		parts = append(parts, buildOrderBySentence(resource.OrderBy))
 	}
-	createTablePart += " " + columnsStatement + " ENGINE = " + resource.Engine + "(" + strings.Join(resource.EngineParams, ", ") + ")"
-
-	parts := []string{createTablePart}
-
-	if orderBySentence != "" {
-		parts = append(parts, orderBySentence)
+	
+	// Добавляем PARTITION BY если указан
+	if len(resource.PartitionBy) > 0 {
+		parts = append(parts, buildPartitionBySentence(resource.PartitionBy))
 	}
-
-	if partitionBySentence != "" {
-		parts = append(parts, partitionBySentence)
-	}
-
+	
+	// Добавляем COMMENT
 	parts = append(parts, fmt.Sprintf("COMMENT '%s'", resource.Comment))
 
-	result := strings.Join(parts, " ")
-	
-	// ВРЕМЕННОЕ логирование для отладки
-	log.Printf("DEBUG buildCreateOnClusterSentence:")
-	log.Printf("  orderBySentence: %q", orderBySentence)
-	log.Printf("  partitionBySentence: %q", partitionBySentence)
-	log.Printf("  parts: %v", parts)
-	log.Printf("  result: %q", result)
-	log.Printf("  result length: %d", len(result))
-	
-	return result
+	return strings.Join(parts, " ")
 }
