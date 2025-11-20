@@ -3,6 +3,7 @@ package resourcetable
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -182,25 +183,34 @@ func resourceTableCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 	
 	// order_by - безопасная обработка опционального поля
 	orderByRaw := d.Get("order_by")
+	log.Printf("DEBUG resourceTableCreate: orderByRaw = %v (type: %T)", orderByRaw, orderByRaw)
 	if orderByRaw != nil {
 		if orderByList, ok := orderByRaw.([]interface{}); ok {
+			log.Printf("DEBUG resourceTableCreate: orderByList = %v", orderByList)
 			tableResource.OrderBy = common.MapArrayInterfaceToArrayOfStrings(orderByList)
+			log.Printf("DEBUG resourceTableCreate: tableResource.OrderBy = %v", tableResource.OrderBy)
 		} else {
+			log.Printf("DEBUG resourceTableCreate: orderByRaw is not []interface{}, using empty list")
 			tableResource.OrderBy = []string{}
 		}
 	} else {
+		log.Printf("DEBUG resourceTableCreate: orderByRaw is nil, using empty list")
 		tableResource.OrderBy = []string{}
 	}
 	
 	// partition_by - безопасная обработка опционального поля
 	partitionByRaw := d.Get("partition_by")
+	log.Printf("DEBUG resourceTableCreate: partitionByRaw = %v (type: %T)", partitionByRaw, partitionByRaw)
 	if partitionByRaw != nil {
 		if partitionByList, ok := partitionByRaw.([]interface{}); ok {
+			log.Printf("DEBUG resourceTableCreate: partitionByList = %v", partitionByList)
 			tableResource.SetPartitionBy(partitionByList)
 		} else {
+			log.Printf("DEBUG resourceTableCreate: partitionByRaw is not []interface{}, using empty list")
 			tableResource.PartitionBy = []PartitionByResource{}
 		}
 	} else {
+		log.Printf("DEBUG resourceTableCreate: partitionByRaw is nil, using empty list")
 		tableResource.PartitionBy = []PartitionByResource{}
 	}
 

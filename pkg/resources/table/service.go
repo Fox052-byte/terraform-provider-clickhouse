@@ -80,6 +80,10 @@ func (ts *CHTableService) getTableColumns(ctx context.Context, database string, 
 
 func (ts *CHTableService) CreateTable(ctx context.Context, tableResource TableResource) error {
 	query := buildCreateOnClusterSentence(tableResource)
+	// ВРЕМЕННОЕ логирование для отладки
+	fmt.Printf("DEBUG SQL Query:\n%s\n", query)
+	fmt.Printf("DEBUG OrderBy: %v\n", tableResource.OrderBy)
+	fmt.Printf("DEBUG PartitionBy: %v\n", tableResource.PartitionBy)
 	err := (*ts.CHConnection).Exec(ctx, query)
 	if err != nil {
 		return fmt.Errorf("creating Clickhouse table: %v", err)

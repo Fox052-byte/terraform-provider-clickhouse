@@ -2,6 +2,7 @@ package resourcetable
 
 import (
 	"fmt"
+	"log"
 	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/common"
 	"strings"
 )
@@ -66,5 +67,15 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 
 	parts = append(parts, fmt.Sprintf("COMMENT '%s'", resource.Comment))
 
-	return strings.Join(parts, " ")
+	result := strings.Join(parts, " ")
+	
+	// ВРЕМЕННОЕ логирование для отладки
+	log.Printf("DEBUG buildCreateOnClusterSentence:")
+	log.Printf("  orderBySentence: %q", orderBySentence)
+	log.Printf("  partitionBySentence: %q", partitionBySentence)
+	log.Printf("  parts: %v", parts)
+	log.Printf("  result: %q", result)
+	log.Printf("  result length: %d", len(result))
+	
+	return result
 }
