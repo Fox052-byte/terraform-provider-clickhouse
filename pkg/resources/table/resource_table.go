@@ -158,7 +158,6 @@ func resourceTableRead(ctx context.Context, d *schema.ResourceData, meta any) di
 	if err := d.Set("order_by", tableResource.OrderBy); err != nil {
 		return diag.FromErr(fmt.Errorf("setting order_by: %v", err))
 	}
-	// Преобразуем PartitionByResource в формат для Terraform schema
 	partitionByList := make([]interface{}, 0)
 	for _, pb := range tableResource.PartitionBy {
 		partitionByMap := map[string]interface{}{
