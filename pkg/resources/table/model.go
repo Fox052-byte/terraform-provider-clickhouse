@@ -90,6 +90,47 @@ func (t *CHTable) ToResource() (*TableResource, error) {
 	tableResource.Comment = comment
 	tableResource.EngineParams = engineParams
 
+	orderByRegex := regexp.MustCompile(`ORDER BY\s+([^PARTITION\s]+?)(?:\s+PARTITION|\s+COMMENT|$)`)
+	orderByMatches := orderByRegex.FindStringSubmatch(t.EngineFull)
+	if len(orderByMatches) > 1 {
+		orderByStr := orderByMatches[1]
+		orderByStr = regexp.MustCompile(`\s+`).ReplaceAllString(orderByStr, " ")
+		orderByParts := regexp.MustCompile(`,\s*`).Split(orderByStr, -1)
+		tableResource.OrderBy = make([]string, 0)
+		for _, part := range orderByParts {
+			part = regexp.MustCompile(`^\s+|\s+$`).ReplaceAllString(part, "")
+			if part != "" {
+				tableResource.OrderBy = append(tableResource.OrderBy, part)
+			}
+		}
+	}
+
+	partitionByRegex := regexp.MustCompile(`PARTITION BY\s+([^COMMENT]+?)(?:\s+COMMENT|$)`)
+	partitionByMatches := partitionByRegex.FindStringSubmatch(t.EngineFull)
+	if len(partitionByMatches) > 1 {
+		partitionByStr := partitionByMatches[1]
+		partitionByStr = regexp.MustCompile(`\s+`).ReplaceAllString(partitionByStr, " ")
+		partitionByStr = regexp.MustCompile(`^\s+|\s+$`).ReplaceAllString(partitionByStr, "")
+		
+		funcRegex := regexp.MustCompile(`^(toYYYYMM|toYYYYMMDD|toYYYYMMDDhhmmss)\(([^)]+)\)$`)
+		funcMatches := funcRegex.FindStringSubmatch(partitionByStr)
+		if len(funcMatches) > 2 {
+			tableResource.PartitionBy = []PartitionByResource{
+				{
+					By:                funcMatches[2],
+					PartitionFunction: funcMatches[1],
+				},
+			}
+		} else {
+			tableResource.PartitionBy = []PartitionByResource{
+				{
+					By:                partitionByStr,
+					PartitionFunction: "",
+				},
+			}
+		}
+	}
+
 	return &tableResource, nil
 }
 
