@@ -78,12 +78,27 @@ func (ts *CHTableService) getTableColumns(ctx context.Context, database string, 
 	return chColumns, nil
 }
 
-func (ts *CHTableService) CreateTable(ctx context.Context, tableResource TableResource) error {
+func (ts *CHTableService) CreateTable(ctx context.Context, tableResource TableResource, originalComment string) error {
 	query := buildCreateOnClusterSentence(tableResource)
 	err := (*ts.CHConnection).Exec(ctx, query)
 	if err != nil {
 		return fmt.Errorf("creating Clickhouse table: %v", err)
 	}
+	
+	// Устанавливаем комментарий через ALTER TABLE, если он указан
+	// Используем JSON формат для хранения метаданных (как было раньше)
+	if originalComment != "" {
+		commentQuery := fmt.Sprintf("ALTER TABLE %s.%s %s MODIFY COMMENT '%s'", 
+			tableResource.Database, 
+			tableResource.Name,
+			common.GetClusterStatement(tableResource.Cluster),
+			tableResource.Comment)
+		err = (*ts.CHConnection).Exec(ctx, commentQuery)
+		if err != nil {
+			return fmt.Errorf("setting table comment: %v", err)
+		}
+	}
+	
 	return nil
 }
 

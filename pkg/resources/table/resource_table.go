@@ -174,6 +174,9 @@ func resourceTableRead(ctx context.Context, d *schema.ResourceData, meta any) di
 	if err := d.Set("column", tableResource.Columns); err != nil {
 		return diag.FromErr(fmt.Errorf("setting column: %v", err))
 	}
+	if err := d.Set("comment", tableResource.Comment); err != nil {
+		return diag.FromErr(fmt.Errorf("setting comment: %v", err))
+	}
 
 	d.SetId(tableResource.Cluster + ":" + database + ":" + tableName)
 
@@ -254,7 +257,7 @@ func resourceTableCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 	}
 
 	query := buildCreateOnClusterSentence(tableResource)
-	err := chTableService.CreateTable(ctx, tableResource)
+	err := chTableService.CreateTable(ctx, tableResource, commentStr)
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("creating table failed. SQL: %s, error: %v", query, err))

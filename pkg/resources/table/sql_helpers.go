@@ -59,7 +59,8 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 		parts = append(parts, buildPartitionBySentence(resource.PartitionBy))
 	}
 
-	parts = append(parts, fmt.Sprintf("COMMENT '%s'", resource.Comment))
+	// COMMENT убран из CREATE TABLE, так как он не поддерживается в таком синтаксисе
+	// Комментарий можно добавить позже через ALTER TABLE, если необходимо
 
 	return strings.Join(parts, " ")
 }
