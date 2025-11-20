@@ -9,7 +9,7 @@ import (
 func buildColumnsSentence(cols []ColumnResource) []string {
 	outColumn := make([]string, 0)
 	for _, col := range cols {
-		outColumn = append(outColumn, fmt.Sprintf("\t %s %s", col.Name, col.Type))
+		outColumn = append(outColumn, fmt.Sprintf("%s %s", col.Name, col.Type))
 	}
 	return outColumn
 }
@@ -40,7 +40,7 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 	columnsStatement := ""
 	if len(resource.Columns) > 0 {
 		columnsList := buildColumnsSentence(resource.GetColumnsResourceList())
-		columnsStatement = "(" + strings.Join(columnsList, ",\n") + ")"
+		columnsStatement = "(" + strings.Join(columnsList, ", ") + ")"
 	}
 
 	clusterStatement := common.GetClusterStatement(resource.Cluster)
@@ -48,15 +48,13 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 	orderBySentence := buildOrderBySentence(resource.OrderBy)
 	partitionBySentence := buildPartitionBySentence(resource.PartitionBy)
 
-	parts := []string{
-		fmt.Sprintf("CREATE TABLE %v.%v %v %v ENGINE = %v(%v)",
-			resource.Database,
-			resource.Name,
-			clusterStatement,
-			columnsStatement,
-			resource.Engine,
-			strings.Join(resource.EngineParams, ", ")),
+	createTablePart := fmt.Sprintf("CREATE TABLE %v.%v", resource.Database, resource.Name)
+	if clusterStatement != "" {
+		createTablePart += " " + clusterStatement
 	}
+	createTablePart += " " + columnsStatement + " ENGINE = " + resource.Engine + "(" + strings.Join(resource.EngineParams, ", ") + ")"
+
+	parts := []string{createTablePart}
 
 	if orderBySentence != "" {
 		parts = append(parts, orderBySentence)
