@@ -45,16 +45,28 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 
 	clusterStatement := common.GetClusterStatement(resource.Cluster)
 
-	return fmt.Sprintf(
-		"CREATE TABLE %v.%v %v %v ENGINE = %v(%v) %s %s COMMENT '%s'",
-		resource.Database,
-		resource.Name,
-		clusterStatement,
-		columnsStatement,
-		resource.Engine,
-		strings.Join(resource.EngineParams, ", "),
-		buildOrderBySentence(resource.OrderBy),
-		buildPartitionBySentence(resource.PartitionBy),
-		resource.Comment,
-	)
+	orderBySentence := buildOrderBySentence(resource.OrderBy)
+	partitionBySentence := buildPartitionBySentence(resource.PartitionBy)
+
+	parts := []string{
+		fmt.Sprintf("CREATE TABLE %v.%v %v %v ENGINE = %v(%v)",
+			resource.Database,
+			resource.Name,
+			clusterStatement,
+			columnsStatement,
+			resource.Engine,
+			strings.Join(resource.EngineParams, ", ")),
+	}
+
+	if orderBySentence != "" {
+		parts = append(parts, orderBySentence)
+	}
+
+	if partitionBySentence != "" {
+		parts = append(parts, partitionBySentence)
+	}
+
+	parts = append(parts, fmt.Sprintf("COMMENT '%s'", resource.Comment))
+
+	return strings.Join(parts, " ")
 }
