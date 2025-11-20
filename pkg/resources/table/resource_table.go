@@ -179,8 +179,30 @@ func resourceTableCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 	tableResource.Engine = d.Get("engine").(string)
 	tableResource.Comment = common.GetComment(d.Get("comment").(string), tableResource.Cluster)
 	tableResource.EngineParams = common.MapArrayInterfaceToArrayOfStrings(d.Get("engine_params").([]interface{}))
-	tableResource.OrderBy = common.MapArrayInterfaceToArrayOfStrings(d.Get("order_by").([]interface{}))
-	tableResource.SetPartitionBy(d.Get("partition_by").([]interface{}))
+	
+	// order_by - безопасная обработка опционального поля
+	orderByRaw := d.Get("order_by")
+	if orderByRaw != nil {
+		if orderByList, ok := orderByRaw.([]interface{}); ok {
+			tableResource.OrderBy = common.MapArrayInterfaceToArrayOfStrings(orderByList)
+		} else {
+			tableResource.OrderBy = []string{}
+		}
+	} else {
+		tableResource.OrderBy = []string{}
+	}
+	
+	// partition_by - безопасная обработка опционального поля
+	partitionByRaw := d.Get("partition_by")
+	if partitionByRaw != nil {
+		if partitionByList, ok := partitionByRaw.([]interface{}); ok {
+			tableResource.SetPartitionBy(partitionByList)
+		} else {
+			tableResource.PartitionBy = []PartitionByResource{}
+		}
+	} else {
+		tableResource.PartitionBy = []PartitionByResource{}
+	}
 
 	if tableResource.Cluster != "" {
 		tableResource.Cluster = client.DefaultCluster
