@@ -52,8 +52,12 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 	}
 	
 	// Добавляем ENGINE
-	engineParamsStr := strings.Join(resource.EngineParams, ", ")
-	parts = append(parts, fmt.Sprintf("ENGINE = %s(%s)", resource.Engine, engineParamsStr))
+	if len(resource.EngineParams) > 0 {
+		engineParamsStr := strings.Join(resource.EngineParams, ", ")
+		parts = append(parts, fmt.Sprintf("ENGINE = %s(%s)", resource.Engine, engineParamsStr))
+	} else {
+		parts = append(parts, fmt.Sprintf("ENGINE = %s", resource.Engine))
+	}
 	
 	// Добавляем ORDER BY если указан
 	if len(resource.OrderBy) > 0 {
