@@ -270,8 +270,6 @@ func resourceTableCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 }
 
 func resourceTableUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	var diags diag.Diagnostics
-
 	client := meta.(*common.ApiClient)
 	conn := client.ClickhouseConnection
 	chTableService := CHTableService{CHConnection: conn}
