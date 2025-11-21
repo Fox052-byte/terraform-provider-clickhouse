@@ -102,6 +102,19 @@ func (ts *CHTableService) CreateTable(ctx context.Context, tableResource TableRe
 	return nil
 }
 
+func (ts *CHTableService) UpdateTableComment(ctx context.Context, tableResource TableResource, originalComment string) error {
+	commentQuery := fmt.Sprintf("ALTER TABLE %s.%s %s MODIFY COMMENT '%s'", 
+		tableResource.Database, 
+		tableResource.Name,
+		common.GetClusterStatement(tableResource.Cluster),
+		tableResource.Comment)
+	err := (*ts.CHConnection).Exec(ctx, commentQuery)
+	if err != nil {
+		return fmt.Errorf("updating table comment: %v", err)
+	}
+	return nil
+}
+
 func (ts *CHTableService) DeleteTable(ctx context.Context, tableResource TableResource) error {
 	query := fmt.Sprintf("DROP TABLE %s.%s %s", tableResource.Database, tableResource.Name, common.GetClusterStatement(tableResource.Cluster))
 	err := (*ts.CHConnection).Exec(ctx, query)

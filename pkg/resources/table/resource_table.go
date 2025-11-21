@@ -15,6 +15,7 @@ func ResourceTable() *schema.Resource {
 
 		CreateContext: resourceTableCreate,
 		ReadContext:   resourceTableRead,
+		UpdateContext: resourceTableUpdate,
 		DeleteContext: resourceTableDelete,
 		Schema: map[string]*schema.Schema{
 			"database": {
@@ -27,7 +28,7 @@ func ResourceTable() *schema.Resource {
 				Description: "Database comment, it will be codified in a json along with come metadata information (like cluster name in case of clustering)",
 				Type:        schema.TypeString,
 				Optional:    true,
-				ForceNew:    true,
+				ForceNew:    false, // Можно изменять через ALTER TABLE
 			},
 			"name": {
 				Description: "Table Name",
@@ -266,6 +267,36 @@ func resourceTableCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 	d.SetId(tableResource.Cluster + ":" + tableResource.Database + ":" + tableResource.Name)
 
 	return diags
+}
+
+func resourceTableUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	client := meta.(*common.ApiClient)
+	conn := client.ClickhouseConnection
+	chTableService := CHTableService{CHConnection: conn}
+	if d.HasChange("comment") {
+		tableResource := TableResource{}
+		tableResource.Database = d.Get("database").(string)
+		tableResource.Name = d.Get("name").(string)
+		tableResource.Cluster = d.Get("cluster").(string)
+		if tableResource.Cluster == "" {
+			tableResource.Cluster = client.DefaultCluster
+		}
+
+		commentRaw := d.Get("comment")
+		commentStr := ""
+		if commentRaw != nil {
+			commentStr = commentRaw.(string)
+		}
+		tableResource.Comment = common.GetComment(commentStr, tableResource.Cluster)
+
+		err := chTableService.UpdateTableComment(ctx, tableResource, commentStr)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("updating table comment: %v", err))
+		}
+	}
+	return resourceTableRead(ctx, d, meta)
 }
 
 func resourceTableDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

@@ -14,19 +14,18 @@ func GetComment(comment string, cluster string) string {
 }
 
 func UnmarshalComment(storedComment string) (comment string, cluster string, err error) {
+	if storedComment == "" {
+		return "", "", nil
+	}
 	storedComment = strings.Replace(storedComment, "\\'", "'", -1)
-
 	byteStreamComment := []byte(storedComment)
-
 	var dat map[string]interface{}
-
 	if err := json.Unmarshal(byteStreamComment, &dat); err != nil {
 		return "", "", err
 	}
 	comment = dat["comment"].(string)
 	cluster = dat["cluster"].(string)
-
-	return comment, cluster, err
+	return comment, cluster, nil
 }
 
 func GetClusterStatement(cluster string) (clusterStatement string) {
@@ -36,7 +35,6 @@ func GetClusterStatement(cluster string) (clusterStatement string) {
 	return ""
 }
 
-// Quote all strings on a string slice
 func Quote(elems []string) []string {
 	var quotedElems []string
 	for _, elem := range elems {

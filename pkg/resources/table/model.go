@@ -96,12 +96,14 @@ func (t *CHTable) ToResource() (*TableResource, error) {
 		createQuery = t.EngineFull
 	}
 
-	orderByRegex := regexp.MustCompile(`(?i)ORDER\s+BY\s+([^(]+?)(?:\s+PARTITION|\s+COMMENT|\s+SETTINGS|$)`)
+
+	orderByRegex := regexp.MustCompile(`(?i)ORDER\s+BY\s+(\([^)]+\)|[^(]+?)(?:\s+PARTITION|\s+COMMENT|\s+SETTINGS|$)`)
 	orderByMatches := orderByRegex.FindStringSubmatch(createQuery)
 	if len(orderByMatches) > 1 {
 		orderByStr := orderByMatches[1]
 		orderByStr = regexp.MustCompile(`^\(|\)$`).ReplaceAllString(orderByStr, "")
 		orderByStr = regexp.MustCompile(`\s+`).ReplaceAllString(orderByStr, " ")
+		orderByStr = regexp.MustCompile(`^\s+|\s+$`).ReplaceAllString(orderByStr, "")
 		orderByParts := regexp.MustCompile(`,\s*`).Split(orderByStr, -1)
 		tableResource.OrderBy = make([]string, 0)
 		for _, part := range orderByParts {
