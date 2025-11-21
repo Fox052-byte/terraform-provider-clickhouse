@@ -31,6 +31,10 @@ func buildPartitionBySentence(partitionBy []PartitionByResource) string {
 
 func buildOrderBySentence(orderBy []string) string {
 	if len(orderBy) > 0 {
+		// Для ClickHouse 25+ с ON CLUSTER нужно оборачивать несколько колонок в скобки
+		if len(orderBy) > 1 {
+			return fmt.Sprintf("ORDER BY (%v)", strings.Join(orderBy, ", "))
+		}
 		return fmt.Sprintf("ORDER BY %v", strings.Join(orderBy, ", "))
 	}
 	return ""
@@ -59,8 +63,10 @@ func buildCreateOnClusterSentence(resource TableResource) (query string) {
 		parts = append(parts, buildPartitionBySentence(resource.PartitionBy))
 	}
 
-	// COMMENT убран из CREATE TABLE, так как он не поддерживается в таком синтаксисе
-	// Комментарий можно добавить позже через ALTER TABLE, если необходимо
+	// Добавляем SETTINGS по умолчанию для MergeTree движков
+	if strings.Contains(resource.Engine, "MergeTree") {
+		parts = append(parts, "SETTINGS index_granularity = 8192")
+	}
 
 	return strings.Join(parts, " ")
 }
