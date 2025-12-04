@@ -5,17 +5,18 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/common"
 	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/datasources"
-	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/resources/db"
-	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/resources/role"
-	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/resources/table"
-	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/resources/user"
+	resourcedb "github.com/Fox052-byte/terraform-provider-clickhouse/pkg/resources/db"
+	resourcerole "github.com/Fox052-byte/terraform-provider-clickhouse/pkg/resources/role"
+	resourcetable "github.com/Fox052-byte/terraform-provider-clickhouse/pkg/resources/table"
+	resourceuser "github.com/Fox052-byte/terraform-provider-clickhouse/pkg/resources/user"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/joho/godotenv"
-	"os"
 )
 
 func init() {
@@ -92,10 +93,11 @@ func New(version string) func() *schema.Provider {
 				"clickhouse_dbs": datasources.DataSourceDbs(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"clickhouse_db":    resourcedb.ResourceDb(),
-				"clickhouse_table": resourcetable.ResourceTable(),
-				"clickhouse_role":  resourcerole.ResourceRole(),
-				"clickhouse_user":  resourceuser.ResourceUser(),
+				"clickhouse_db":               resourcedb.ResourceDb(),
+				"clickhouse_table":            resourcetable.ResourceTable(),
+				"clickhouse_postgresql_table": resourcetable.ResourcePostgreSQLTable(),
+				"clickhouse_role":             resourcerole.ResourceRole(),
+				"clickhouse_user":             resourceuser.ResourceUser(),
 			},
 			ConfigureContextFunc: configure(),
 		}

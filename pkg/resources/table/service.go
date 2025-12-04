@@ -3,6 +3,7 @@ package resourcetable
 import (
 	"context"
 	"fmt"
+
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/common"
 )
@@ -84,12 +85,10 @@ func (ts *CHTableService) CreateTable(ctx context.Context, tableResource TableRe
 	if err != nil {
 		return fmt.Errorf("creating Clickhouse table: %v", err)
 	}
-	
-	// Устанавливаем комментарий через ALTER TABLE, если он указан
-	// Используем JSON формат для хранения метаданных (как было раньше)
+
 	if originalComment != "" {
-		commentQuery := fmt.Sprintf("ALTER TABLE %s.%s %s MODIFY COMMENT '%s'", 
-			tableResource.Database, 
+		commentQuery := fmt.Sprintf("ALTER TABLE %s.%s %s MODIFY COMMENT '%s'",
+			tableResource.Database,
 			tableResource.Name,
 			common.GetClusterStatement(tableResource.Cluster),
 			tableResource.Comment)
@@ -98,13 +97,13 @@ func (ts *CHTableService) CreateTable(ctx context.Context, tableResource TableRe
 			return fmt.Errorf("setting table comment: %v", err)
 		}
 	}
-	
+
 	return nil
 }
 
 func (ts *CHTableService) UpdateTableComment(ctx context.Context, tableResource TableResource, originalComment string) error {
-	commentQuery := fmt.Sprintf("ALTER TABLE %s.%s %s MODIFY COMMENT '%s'", 
-		tableResource.Database, 
+	commentQuery := fmt.Sprintf("ALTER TABLE %s.%s %s MODIFY COMMENT '%s'",
+		tableResource.Database,
 		tableResource.Name,
 		common.GetClusterStatement(tableResource.Cluster),
 		tableResource.Comment)
@@ -120,6 +119,50 @@ func (ts *CHTableService) DeleteTable(ctx context.Context, tableResource TableRe
 	err := (*ts.CHConnection).Exec(ctx, query)
 	if err != nil {
 		return fmt.Errorf("deleting Clickhouse table: %v", err)
+	}
+	return nil
+}
+
+// PostgreSQL table methods
+
+func (ts *CHTableService) CreatePostgreSQLTable(ctx context.Context, tableResource PostgreSQLTableResource, originalComment string) error {
+	query := buildCreatePostgreSQLTableSentence(tableResource)
+	err := (*ts.CHConnection).Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("creating Clickhouse PostgreSQL table: %v", err)
+	}
+
+	if originalComment != "" {
+		commentQuery := fmt.Sprintf("ALTER TABLE %s.%s MODIFY COMMENT '%s'",
+			tableResource.Database,
+			tableResource.Name,
+			tableResource.Comment)
+		err = (*ts.CHConnection).Exec(ctx, commentQuery)
+		if err != nil {
+			return fmt.Errorf("setting PostgreSQL table comment: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func (ts *CHTableService) UpdatePostgreSQLTableComment(ctx context.Context, tableResource PostgreSQLTableResource, originalComment string) error {
+	commentQuery := fmt.Sprintf("ALTER TABLE %s.%s MODIFY COMMENT '%s'",
+		tableResource.Database,
+		tableResource.Name,
+		tableResource.Comment)
+	err := (*ts.CHConnection).Exec(ctx, commentQuery)
+	if err != nil {
+		return fmt.Errorf("updating PostgreSQL table comment: %v", err)
+	}
+	return nil
+}
+
+func (ts *CHTableService) DeletePostgreSQLTable(ctx context.Context, tableResource PostgreSQLTableResource) error {
+	query := fmt.Sprintf("DROP TABLE %s.%s", tableResource.Database, tableResource.Name)
+	err := (*ts.CHConnection).Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("deleting Clickhouse PostgreSQL table: %v", err)
 	}
 	return nil
 }

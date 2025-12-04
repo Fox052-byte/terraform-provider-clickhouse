@@ -54,7 +54,7 @@ func ValidateType(inValue any, p hashicorpcty.Path) diag.Diagnostics {
 	if idx := strings.Index(baseType, "("); idx > 0 {
 		simpleType = baseType[:idx]
 	}
-	
+
 	allowedTypes := []string{
 		"UInt8", "UInt16", "UInt32", "UInt64", "UInt128", "UInt256",
 		"Int8", "Int16", "Int32", "Int64", "Int128", "Int256",
@@ -62,7 +62,7 @@ func ValidateType(inValue any, p hashicorpcty.Path) diag.Diagnostics {
 		"Bool", "String", "UUID", "Date", "Date32", "DateTime", "DateTime64",
 		"LowCardinality", "JSON", "Decimal",
 	}
-	
+
 	found := false
 	for _, allowedType := range allowedTypes {
 		if simpleType == allowedType {
@@ -70,7 +70,7 @@ func ValidateType(inValue any, p hashicorpcty.Path) diag.Diagnostics {
 			break
 		}
 	}
-	
+
 	var diags diag.Diagnostics
 	if !found {
 		diag := diag.Diagnostic{

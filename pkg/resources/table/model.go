@@ -2,19 +2,20 @@ package resourcetable
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/Fox052-byte/terraform-provider-clickhouse/pkg/common"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"regexp"
 )
 
 type CHTable struct {
-	Database        string     `ch:"database"`
-	Name            string     `ch:"name"`
-	EngineFull      string     `ch:"engine_full"`
-	Engine          string     `ch:"engine"`
-	Comment         string     `ch:"comment"`
-	CreateTableQuery string    `ch:"create_table_query"`
-	Columns         []CHColumn `ch:"columns"`
+	Database         string     `ch:"database"`
+	Name             string     `ch:"name"`
+	EngineFull       string     `ch:"engine_full"`
+	Engine           string     `ch:"engine"`
+	Comment          string     `ch:"comment"`
+	CreateTableQuery string     `ch:"create_table_query"`
+	Columns          []CHColumn `ch:"columns"`
 }
 
 type CHColumn struct {
@@ -96,7 +97,6 @@ func (t *CHTable) ToResource() (*TableResource, error) {
 		createQuery = t.EngineFull
 	}
 
-
 	orderByRegex := regexp.MustCompile(`(?i)ORDER\s+BY\s+(\([^)]+\)|[^(]+?)(?:\s+PARTITION|\s+COMMENT|\s+SETTINGS|$)`)
 	orderByMatches := orderByRegex.FindStringSubmatch(createQuery)
 	if len(orderByMatches) > 1 {
@@ -114,14 +114,13 @@ func (t *CHTable) ToResource() (*TableResource, error) {
 		}
 	}
 
-
 	partitionByRegex := regexp.MustCompile(`(?i)PARTITION\s+BY\s+((?:[^\s]|\([^)]+\))+?)(?:\s+(?:ORDER|COMMENT|SETTINGS)|\s*$)`)
 	partitionByMatches := partitionByRegex.FindStringSubmatch(createQuery)
 	if len(partitionByMatches) > 1 {
 		partitionByStr := partitionByMatches[1]
 		partitionByStr = regexp.MustCompile(`\s+`).ReplaceAllString(partitionByStr, " ")
 		partitionByStr = regexp.MustCompile(`^\s+|\s+$`).ReplaceAllString(partitionByStr, "")
-		
+
 		funcRegex := regexp.MustCompile(`^(toYYYYMM|toYYYYMMDD|toYYYYMMDDhhmmss)\(([^)]+)\)$`)
 		funcMatches := funcRegex.FindStringSubmatch(partitionByStr)
 		if len(funcMatches) > 2 {
