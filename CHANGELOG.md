@@ -13,6 +13,16 @@ BUG FIXES:
 * Исправлена обработка пустых/неопределенных значений для опциональных полей
 * Исправлен синтаксис SQL запроса - убран несуществующий COMMENT из CREATE TABLE (ClickHouse не поддерживает COMMENT в CREATE TABLE)
 
+## 0.0.15
+
+FEATURES:
+* Добавлен новый ресурс `clickhouse_postgresql_table` для управления PostgreSQL внешними таблицами в ClickHouse
+* Добавлена поддержка создания, чтения, обновления и удаления таблиц с движком PostgreSQL
+
+ENHANCEMENTS:
+* Улучшена обработка ошибок в провайдере - использование `fmt.Errorf` вместо `errors.New(fmt.Sprintf(...))`
+* Исправлены предупреждения линтера в коде провайдера
+
 ## 0.1.0 (Unreleased)
 
 BACKWARDS INCOMPATIBILITIES / NOTES:
